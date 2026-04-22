@@ -26,19 +26,20 @@ export class InvestigationComplete extends Scene {
             fontFamily: 'Arial', fontSize: 20, color: '#ffffff',
         }).setOrigin(0.5);
 
-        this.add.text(512, 190, 'INDICES COLLECTÉS :', {
+        this.add.text(512, 180, 'INDICES COLLECTÉS :', {
             fontFamily: 'Arial', fontSize: 16, color: '#ffd700',
         }).setOrigin(0.5);
 
         investigation.stages.forEach((stage, i) => {
-            this.add.text(512, 225 + i * 35, `${i + 1}. "${stage.clueText}"`, {
-                fontFamily: 'Arial', fontSize: 12, color: '#cccccc',
+            this.add.text(512, 210 + i * 28, `${i + 1}. "${stage.clueText}"`, {
+                fontFamily: 'Arial', fontSize: 11, color: '#cccccc',
                 fontStyle: 'italic', wordWrap: { width: 700 }, align: 'center',
             }).setOrigin(0.5);
         });
 
         // Conclusion
-        this.add.text(512, 480, investigation.conclusion, {
+        const conclusionY = 210 + investigation.stages.length * 28 + 30;
+        this.add.text(512, conclusionY, investigation.conclusion, {
             fontFamily: 'Arial', fontSize: 18, color: '#cc0000',
             wordWrap: { width: 600 }, align: 'center',
         }).setOrigin(0.5);
@@ -47,7 +48,7 @@ export class InvestigationComplete extends Scene {
         const allComplete = this.investigationId >= INVESTIGATIONS.length - 1;
         const btnText = allComplete ? '[ RÉVÉLATION FINALE ]' : '[ ENQUÊTE SUIVANTE ]';
 
-        const btn = this.add.text(512, 580, btnText, {
+        const btn = this.add.text(512, conclusionY + 80, btnText, {
             fontFamily: 'Arial', fontSize: 24, color: '#ffffff',
         }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
@@ -64,6 +65,7 @@ export class InvestigationComplete extends Scene {
             }
         });
 
+        localStorage.setItem('scottKiller_inv' + this.investigationId + '_complete', 'true');
         localStorage.removeItem('scottKiller_save');
         EventBus.emit('current-scene-ready', this);
     }

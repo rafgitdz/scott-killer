@@ -18,6 +18,11 @@ export class StageComplete extends Scene {
         this.cameras.main.setBackgroundColor(CONFIG.COLORS.BACKGROUND);
         this.cameras.main.fadeIn(300, 0, 0, 0);
 
+        localStorage.setItem('scottKiller_save', JSON.stringify({
+            investigationId: this.investigationId,
+            stageIndex: this.stageIndex + 1,
+        }));
+
         const investigation = INVESTIGATIONS[this.investigationId];
         const isLastStage = this.stageIndex >= investigation.stages.length - 1;
 
