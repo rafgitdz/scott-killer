@@ -42,7 +42,7 @@ export class GameLevel extends Scene {
         // Build level (walls at depth 1)
         const level = buildLevel(this, stageLayout);
         this.walls = level.walls;
-        this.walls.children.each(w => w.setDepth(1));
+        this.walls.getChildren().forEach(w => w.setDepth(1));
 
         this.physics.world.setBounds(0, 0, level.width, level.height);
         this.cameras.main.setBounds(0, 0, level.width, level.height);
@@ -130,7 +130,7 @@ export class GameLevel extends Scene {
 
         // Destroy bullets that traveled too far
         [this.playerBullets, this.enemyBullets].forEach(group => {
-            group.children.each(bullet => {
+            group.getChildren().forEach(bullet => {
                 if (!bullet || !bullet.active) return;
                 const sx = bullet.getData('startX');
                 const sy = bullet.getData('startY');
