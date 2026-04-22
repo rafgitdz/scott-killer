@@ -1,72 +1,59 @@
 import { EventBus } from '../EventBus';
 import { Scene } from 'phaser';
+import { CONFIG } from '../config.js';
 
-export class MainMenu extends Scene
-{
-    logoTween;
-
-    constructor ()
-    {
+export class MainMenu extends Scene {
+    constructor() {
         super('MainMenu');
     }
 
-    create ()
-    {
-        this.add.image(512, 384, 'background');
+    create() {
+        this.cameras.main.setBackgroundColor(CONFIG.COLORS.BACKGROUND);
 
-        this.logo = this.add.image(512, 300, 'logo').setDepth(100);
+        // Title
+        this.add.text(512, 180, 'SCOTT', {
+            fontFamily: 'Arial Black', fontSize: 80,
+            color: '#cc0000', stroke: '#000000', strokeThickness: 10,
+        }).setOrigin(0.5);
 
-        this.add.text(512, 460, 'Main Menu', {
-            fontFamily: 'Arial Black', fontSize: 38, color: '#ffffff',
-            stroke: '#000000', strokeThickness: 8,
-            align: 'center'
-        }).setDepth(100).setOrigin(0.5);
-        
-        EventBus.emit('current-scene-ready', this);
-    }
+        this.add.text(512, 260, 'KILLER', {
+            fontFamily: 'Arial Black', fontSize: 80,
+            color: '#ffffff', stroke: '#000000', strokeThickness: 10,
+        }).setOrigin(0.5);
 
-    changeScene ()
-    {
-        if (this.logoTween)
-        {
-            this.logoTween.stop();
-            this.logoTween = null;
-        }
+        this.add.text(512, 320, 'JUSTICE WILL BE SERVED', {
+            fontFamily: 'Arial', fontSize: 16, color: '#666666',
+        }).setOrigin(0.5);
 
-        this.scene.start('Game');
-    }
+        // New Game
+        const newBtn = this.add.text(512, 440, '[ NOUVELLE ENQUÊTE ]', {
+            fontFamily: 'Arial', fontSize: 26, color: '#ffffff',
+        }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
-    moveLogo (reactCallback)
-    {
-        if (this.logoTween)
-        {
-            if (this.logoTween.isPlaying())
-            {
-                this.logoTween.pause();
-            }
-            else
-            {
-                this.logoTween.play();
-            }
-        }
-        else
-        {
-            this.logoTween = this.tweens.add({
-                targets: this.logo,
-                x: { value: 750, duration: 3000, ease: 'Back.easeInOut' },
-                y: { value: 80, duration: 1500, ease: 'Sine.easeOut' },
-                yoyo: true,
-                repeat: -1,
-                onUpdate: () => {
-                    if (reactCallback)
-                    {
-                        reactCallback({
-                            x: Math.floor(this.logo.x),
-                            y: Math.floor(this.logo.y)
-                        });
-                    }
-                }
+        newBtn.on('pointerover', () => newBtn.setColor('#cc0000'));
+        newBtn.on('pointerout', () => newBtn.setColor('#ffffff'));
+        newBtn.on('pointerdown', () => this.scene.start('InvestigationSelect'));
+
+        // Continue (if save exists)
+        const saveData = localStorage.getItem('scottKiller_save');
+        if (saveData) {
+            const contBtn = this.add.text(512, 500, '[ CONTINUER ]', {
+                fontFamily: 'Arial', fontSize: 26, color: '#ffffff',
+            }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+
+            contBtn.on('pointerover', () => contBtn.setColor('#cc0000'));
+            contBtn.on('pointerout', () => contBtn.setColor('#ffffff'));
+            contBtn.on('pointerdown', () => {
+                const save = JSON.parse(saveData);
+                this.scene.start('StageIntro', save);
             });
         }
+
+        // Controls hint
+        this.add.text(512, 700, 'ZQSD / WASD — Déplacer  |  SOURIS — Viser  |  CLIC — Tirer', {
+            fontFamily: 'Arial', fontSize: 12, color: '#444444',
+        }).setOrigin(0.5);
+
+        EventBus.emit('current-scene-ready', this);
     }
 }

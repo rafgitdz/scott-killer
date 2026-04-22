@@ -1,47 +1,70 @@
 import { Scene } from 'phaser';
+import { CONFIG } from '../config.js';
+import { ENEMY_TYPES } from '../data/enemyTypes.js';
 
-export class Preloader extends Scene
-{
-    constructor ()
-    {
+export class Preloader extends Scene {
+    constructor() {
         super('Preloader');
     }
 
-    init ()
-    {
-        //  We loaded this image in our Boot Scene, so we can display it here
-        this.add.image(512, 384, 'background');
+    init() {
+        this.cameras.main.setBackgroundColor(0x000000);
 
-        //  A simple progress bar. This is the outline of the bar.
-        this.add.rectangle(512, 384, 468, 32).setStrokeStyle(1, 0xffffff);
+        this.add.text(512, 350, 'SCOTT KILLER', {
+            fontFamily: 'Arial Black', fontSize: 32, color: '#cc0000',
+        }).setOrigin(0.5);
 
-        //  This is the progress bar itself. It will increase in size from the left based on the % of progress.
-        const bar = this.add.rectangle(512-230, 384, 4, 28, 0xffffff);
+        this.add.rectangle(512, 400, 300, 20).setStrokeStyle(1, 0xffffff);
+        const bar = this.add.rectangle(512 - 148, 400, 4, 16, 0xcc0000);
 
-        //  Use the 'progress' event emitted by the LoaderPlugin to update the loading bar
         this.load.on('progress', (progress) => {
-
-            //  Update the progress bar (our bar is 464px wide, so 100% = 464px)
-            bar.width = 4 + (460 * progress);
-
+            bar.width = 4 + (292 * progress);
         });
     }
 
-    preload ()
-    {
-        //  Load the assets for the game - Replace with your own assets
-        this.load.setPath('assets');
-
-        this.load.image('logo', 'logo.png');
-        this.load.image('star', 'star.png');
+    preload() {
+        // No external assets — we generate everything procedurally
     }
 
-    create ()
-    {
-        //  When all the assets have loaded, it's often worth creating global objects here that the rest of the game can use.
-        //  For example, you can define global animations here, so we can use them in other scenes.
+    create() {
+        const gfx = this.make.graphics({ add: false });
 
-        //  Move to the MainMenu. You could also swap this for a Scene Transition, such as a camera fade.
+        // Wall tile
+        this.genTexture(gfx, 'tile-wall', CONFIG.TILE_SIZE, CONFIG.TILE_SIZE, CONFIG.COLORS.WALL);
+
+        // Player (blue square with white "nose" for direction)
+        gfx.clear();
+        gfx.fillStyle(CONFIG.PLAYER.COLOR, 1);
+        gfx.fillRect(0, 0, CONFIG.PLAYER.SIZE, CONFIG.PLAYER.SIZE);
+        gfx.fillStyle(0xffffff, 1);
+        gfx.fillRect(CONFIG.PLAYER.SIZE - 4, CONFIG.PLAYER.SIZE / 2 - 2, 6, 4);
+        gfx.generateTexture('player', CONFIG.PLAYER.SIZE + 2, CONFIG.PLAYER.SIZE);
+        gfx.clear();
+
+        // Bullets
+        this.genTexture(gfx, 'bullet-player', CONFIG.BULLET.SIZE + 2, CONFIG.BULLET.SIZE + 2, CONFIG.BULLET.PLAYER_COLOR);
+        this.genTexture(gfx, 'bullet-enemy', CONFIG.BULLET.SIZE + 2, CONFIG.BULLET.SIZE + 2, CONFIG.BULLET.ENEMY_COLOR);
+
+        // Clue (gold circle)
+        gfx.clear();
+        gfx.fillStyle(CONFIG.COLORS.CLUE, 1);
+        gfx.fillCircle(8, 8, 8);
+        gfx.generateTexture('clue', 16, 16);
+        gfx.clear();
+
+        // Enemy textures
+        for (const [key, type] of Object.entries(ENEMY_TYPES)) {
+            this.genTexture(gfx, `enemy-${key}`, type.size, type.size, type.color);
+        }
+
+        gfx.destroy();
         this.scene.start('MainMenu');
+    }
+
+    genTexture(gfx, key, w, h, color) {
+        gfx.clear();
+        gfx.fillStyle(color, 1);
+        gfx.fillRect(0, 0, w, h);
+        gfx.generateTexture(key, w, h);
     }
 }
