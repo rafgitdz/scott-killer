@@ -5,6 +5,7 @@ import { CONFIG } from '../config.js';
 import { Player } from '../entities/Player.js';
 import { Enemy } from '../entities/Enemy.js';
 import { Clue } from '../entities/Clue.js';
+import { Medkit } from '../entities/Medkit.js';
 import { buildLevel } from '../systems/LevelBuilder.js';
 import { INVESTIGATIONS } from '../data/investigations.js';
 
@@ -59,6 +60,15 @@ export class GameLevel extends Scene {
             this.enemyGroup.add(enemy.sprite);
         });
 
+        // Medkits
+        this.medkits = [];
+        this.medkitGroup = this.physics.add.staticGroup();
+        level.medkitSpawns.forEach(spawn => {
+            const medkit = new Medkit(this, spawn.x, spawn.y);
+            this.medkits.push(medkit);
+            this.medkitGroup.add(medkit.sprite);
+        });
+
         // Bullet groups
         this.playerBullets = this.physics.add.group();
         this.enemyBullets = this.physics.add.group();
@@ -97,6 +107,19 @@ export class GameLevel extends Scene {
             const dmg = bullet.getData('damage') || CONFIG.ENEMY.BULLET_DAMAGE;
             bullet.destroy();
             this.player.takeDamage(dmg);
+        });
+
+        // Medkit pickup
+        this.physics.add.overlap(this.player.sprite, this.medkitGroup, (playerSprite, medkitSprite) => {
+            if (this.transitioning) return;
+            if (this.player.hp >= this.player.maxHp) return;
+            const medkit = this.medkits.find(m => m.sprite === medkitSprite);
+            if (medkit && !medkit.collected) {
+                medkit.collect();
+                this.player.hp = Math.min(this.player.maxHp, this.player.hp + CONFIG.MEDKIT.HEAL_AMOUNT);
+                this.cameras.main.flash(150, 0, 200, 100);
+                this.showMessage('+' + CONFIG.MEDKIT.HEAL_AMOUNT + ' HP');
+            }
         });
 
         // Camera

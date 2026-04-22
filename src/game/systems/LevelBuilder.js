@@ -6,6 +6,7 @@ export function buildLevel(scene, layout) {
         walls: null,
         playerSpawn: { x: ts * 2, y: ts * 2 },
         enemySpawns: [],
+        medkitSpawns: [],
         clueSpawn: { x: ts * 3, y: ts * 3 },
         width: 0,
         height: 0,
@@ -37,6 +38,9 @@ export function buildLevel(scene, layout) {
                     break;
                 case 'S':
                     result.enemySpawns.push({ x: cx, y: cy, type: 'sniper' });
+                    break;
+                case 'M':
+                    result.medkitSpawns.push({ x: cx, y: cy });
                     break;
                 case 'C':
                     result.clueSpawn = { x: cx, y: cy };

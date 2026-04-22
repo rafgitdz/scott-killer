@@ -25,6 +25,13 @@ export const CONFIG = {
         DAMAGE: 30,
     },
 
+    // Medkit
+    MEDKIT: {
+        HEAL_AMOUNT: 35,
+        SIZE: 14,
+        COLOR: 0x00ff66,
+    },
+
     // Enemies
     ENEMY: {
         DETECTION_RANGE: 280,

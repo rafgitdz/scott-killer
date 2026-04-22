@@ -52,6 +52,14 @@ export class Preloader extends Scene {
         gfx.generateTexture('clue', 16, 16);
         gfx.clear();
 
+        // Medkit (green cross)
+        gfx.clear();
+        gfx.fillStyle(CONFIG.MEDKIT.COLOR, 1);
+        gfx.fillRect(4, 0, 6, 14);  // vertical bar
+        gfx.fillRect(0, 4, 14, 6);  // horizontal bar
+        gfx.generateTexture('medkit', 14, 14);
+        gfx.clear();
+
         // Enemy textures
         for (const [key, type] of Object.entries(ENEMY_TYPES)) {
             this.genTexture(gfx, `enemy-${key}`, type.size, type.size, type.color);
