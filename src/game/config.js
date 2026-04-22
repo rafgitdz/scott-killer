@@ -7,31 +7,31 @@ export const CONFIG = {
 
     // Player
     PLAYER: {
-        SPEED: 200,
+        SPEED: 230,
         SIZE: 20,
         COLOR: 0x4a6fa5,
         MAX_HP: 100,
-        FIRE_RATE: 250, // ms between shots
-        INVINCIBILITY_TIME: 300, // ms after taking damage
+        FIRE_RATE: 200, // ms between shots
+        INVINCIBILITY_TIME: 500, // ms after taking damage
     },
 
     // Bullets
     BULLET: {
-        SPEED: 500,
+        SPEED: 600,
         SIZE: 4,
         PLAYER_COLOR: 0xffcc00,
         ENEMY_COLOR: 0xff6666,
-        MAX_DISTANCE: 600,
-        DAMAGE: 25,
+        MAX_DISTANCE: 550,
+        DAMAGE: 30,
     },
 
     // Enemies
     ENEMY: {
-        DETECTION_RANGE: 250,
-        ALERT_RANGE: 200,
+        DETECTION_RANGE: 280,
+        ALERT_RANGE: 220,
         ATTACK_RANGE: 300,
         FIRE_RATE: 1000, // ms
-        BULLET_DAMAGE: 10,
+        BULLET_DAMAGE: 12,
     },
 
     // Visuals

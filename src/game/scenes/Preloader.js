@@ -57,6 +57,13 @@ export class Preloader extends Scene {
             this.genTexture(gfx, `enemy-${key}`, type.size, type.size, type.color);
         }
 
+        // VFX particle (small white circle for trails & death particles)
+        gfx.clear();
+        gfx.fillStyle(0xffffff, 1);
+        gfx.fillCircle(3, 3, 3);
+        gfx.generateTexture('vfx-particle', 6, 6);
+        gfx.clear();
+
         gfx.destroy();
         this.scene.start('MainMenu');
     }
