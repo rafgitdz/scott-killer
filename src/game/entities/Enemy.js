@@ -30,6 +30,10 @@ export class Enemy {
 
     update(time, delta, player) {
         if (!this.alive) return;
+        if (!player.alive || !player.sprite?.active) {
+            this.sprite.body.setVelocity(0, 0);
+            return;
+        }
 
         const dist = PhaserMath.Distance.Between(
             this.sprite.x, this.sprite.y,
@@ -141,12 +145,14 @@ export class Enemy {
         if (!this.alive) return;
         this.hp = Math.max(0, this.hp - amount);
 
-        this.sprite.setTint(0xffffff);
+        if (this.sprite?.active) this.sprite.setTint(0xffffff);
         this.scene.time.delayedCall(80, () => {
-            if (this.sprite && this.sprite.active) this.sprite.clearTint();
+            if (this.sprite?.active) this.sprite.clearTint();
         });
 
-        this.scene.alertNearbyEnemies(this.sprite.x, this.sprite.y);
+        if (this.scene?.scene?.isActive()) {
+            this.scene.alertNearbyEnemies(this.sprite.x, this.sprite.y);
+        }
 
         if (this.hp <= 0) this.die();
     }
@@ -155,8 +161,42 @@ export class Enemy {
         this.alive = false;
         this.sprite.body.setVelocity(0, 0);
         this.sprite.body.enable = false;
-        this.hpBar.destroy();
-        this.hpBar = null;
+        if (this.hpBar) {
+            this.hpBar.destroy();
+            this.hpBar = null;
+        }
+
+        const deathX = this.sprite.x;
+        const deathY = this.sprite.y;
+        const sceneRef = this.scene;
+
+        // Death particles — small red burst
+        const deathParticles = sceneRef.add.particles(deathX, deathY, 'vfx-particle', {
+            speed: { min: 40, max: 140 },
+            lifespan: 350,
+            alpha: { start: 1, end: 0 },
+            scale: { start: 0.6, end: 0 },
+            quantity: 8,
+            tint: 0xff2222,
+            emitting: false,
+        }).setDepth(10);
+        deathParticles.explode(8);
+        sceneRef.time.delayedCall(400, () => {
+            if (deathParticles?.active) deathParticles.destroy();
+        });
+
+        // Kill confirmed indicator
+        const killMark = sceneRef.add.text(deathX, deathY, '✕', {
+            fontSize: '18px', color: '#ff4444',
+            stroke: '#000000', strokeThickness: 2,
+        }).setOrigin(0.5).setDepth(15);
+        sceneRef.tweens.add({
+            targets: killMark,
+            y: deathY - 20,
+            alpha: 0,
+            duration: 500,
+            onComplete: () => { if (killMark?.active) killMark.destroy(); },
+        });
 
         this.scene.tweens.add({
             targets: this.sprite,
@@ -165,8 +205,10 @@ export class Enemy {
             scaleY: 1.3,
             duration: 300,
             onComplete: () => {
-                this.sprite.destroy();
-                this.scene.onEnemyDeath(this);
+                if (this.sprite) this.sprite.destroy();
+                if (this.scene?.scene?.isActive()) {
+                    this.scene.onEnemyDeath(this);
+                }
             }
         });
     }

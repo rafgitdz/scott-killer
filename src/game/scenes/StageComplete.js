@@ -9,13 +9,14 @@ export class StageComplete extends Scene {
     }
 
     init(data) {
-        this.investigationId = data.investigationId;
-        this.stageIndex = data.stageIndex;
-        this.clueText = data.clueText;
+        this.investigationId = data?.investigationId ?? 0;
+        this.stageIndex = data?.stageIndex ?? 0;
+        this.clueText = data?.clueText ?? '';
     }
 
     create() {
         this.cameras.main.setBackgroundColor(CONFIG.COLORS.BACKGROUND);
+        this.cameras.main.fadeIn(300, 0, 0, 0);
 
         const investigation = INVESTIGATIONS[this.investigationId];
         const isLastStage = this.stageIndex >= investigation.stages.length - 1;

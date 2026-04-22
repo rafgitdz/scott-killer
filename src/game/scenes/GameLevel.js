@@ -19,6 +19,8 @@ export class GameLevel extends Scene {
     }
 
     create() {
+        this.transitioning = false;
+
         const investigation = INVESTIGATIONS[this.investigationId];
         const stage = investigation.stages[this.stageIndex];
         this.stageData = stage;
@@ -79,6 +81,7 @@ export class GameLevel extends Scene {
         });
 
         this.physics.add.overlap(this.playerBullets, this.enemyGroup, (bullet, enemySprite) => {
+            if (this.transitioning) return;
             if (!bullet?.active) return;
             bullet.destroy();
             const enemy = this.enemies.find(e => e.sprite === enemySprite);
@@ -89,6 +92,7 @@ export class GameLevel extends Scene {
 
         // NOTE: single sprite vs group → callback is (singleSprite, groupMember)
         this.physics.add.overlap(this.enemyBullets, this.player.sprite, (playerSprite, bullet) => {
+            if (this.transitioning) return;
             if (!bullet?.active || !playerSprite?.active) return;
             const dmg = bullet.getData('damage') || CONFIG.ENEMY.BULLET_DAMAGE;
             bullet.destroy();
@@ -100,6 +104,7 @@ export class GameLevel extends Scene {
 
         // Shoot on click
         this.input.on('pointerdown', () => {
+            if (this.transitioning) return;
             if (this.player.alive && this.player.canFire(this.time.now)) {
                 this.player.fire(this.time.now);
                 const angle = this.player.getAimAngle();
@@ -117,6 +122,8 @@ export class GameLevel extends Scene {
     }
 
     update(time, delta) {
+        if (this.transitioning) return;
+
         this.player.update(time);
 
         this.enemies.forEach(e => e.update(time, delta, this.player));
@@ -146,6 +153,8 @@ export class GameLevel extends Scene {
 
     // ── Bullet factory (used by player & enemies) ──
     createBullet(x, y, angle, isPlayer, damage) {
+        if (this.transitioning) return null;
+
         const key = isPlayer ? 'bullet-player' : 'bullet-enemy';
         const group = isPlayer ? this.playerBullets : this.enemyBullets;
 
@@ -162,6 +171,39 @@ export class GameLevel extends Scene {
         );
         bullet.rotation = angle;
         bullet.body.setSize(CONFIG.BULLET.SIZE, CONFIG.BULLET.SIZE);
+
+        // Muzzle flash
+        const flashColor = isPlayer ? 0xffee88 : 0xff8888;
+        const flash = this.add.circle(x, y, 6, flashColor, 1).setDepth(7);
+        this.tweens.add({
+            targets: flash,
+            alpha: 0,
+            scale: 1.8,
+            duration: 80,
+            onComplete: () => flash.destroy(),
+        });
+
+        // Bullet trail
+        const trail = this.add.particles(x, y, 'vfx-particle', {
+            speed: 0,
+            lifespan: 120,
+            alpha: { start: 0.35, end: 0 },
+            scale: { start: 0.5, end: 0.1 },
+            tint: isPlayer ? CONFIG.BULLET.PLAYER_COLOR : CONFIG.BULLET.ENEMY_COLOR,
+            follow: bullet,
+            frequency: 30,
+            quantity: 1,
+        }).setDepth(5);
+
+        bullet.on('destroy', () => {
+            trail.stop();
+            if (this.scene && this.scene.isActive()) {
+                this.time.delayedCall(150, () => trail.destroy());
+            } else {
+                trail.destroy();
+            }
+        });
+
         return bullet;
     }
 
@@ -172,6 +214,7 @@ export class GameLevel extends Scene {
         this.showMessage('ZONE NETTOYÉE — CHERCHE L\'INDICE !');
 
         this.physics.add.overlap(this.player.sprite, this.clue.sprite, () => {
+            if (this.transitioning) return;
             if (!this.clue.collected) {
                 this.clue.collect();
                 this.onClueCollected();
@@ -180,8 +223,9 @@ export class GameLevel extends Scene {
     }
 
     alertNearbyEnemies(x, y) {
+        if (this.transitioning) return;
         this.enemies.forEach(e => {
-            if (!e.alive) return;
+            if (!e.alive || !e.sprite?.active) return;
             const dist = PhaserMath.Distance.Between(x, y, e.sprite.x, e.sprite.y);
             if (dist < CONFIG.ENEMY.ALERT_RANGE) {
                 e.state = 'chase';
@@ -190,21 +234,34 @@ export class GameLevel extends Scene {
     }
 
     onEnemyDeath() {
+        if (this.transitioning) return;
         this.enemiesRemaining = this.enemies.filter(e => e.alive).length;
     }
 
     onPlayerDeath() {
-        this.scene.start('GameOver', {
-            investigationId: this.investigationId,
-            stageIndex: this.stageIndex,
+        if (this.transitioning) return;
+        this.transitioning = true;
+        this.cameras.main.fade(400, 0, 0, 0, false, (_cam, progress) => {
+            if (progress >= 1) {
+                this.scene.start('GameOver', {
+                    investigationId: this.investigationId,
+                    stageIndex: this.stageIndex,
+                });
+            }
         });
     }
 
     onClueCollected() {
-        this.scene.start('StageComplete', {
-            investigationId: this.investigationId,
-            stageIndex: this.stageIndex,
-            clueText: this.stageData.clueText,
+        if (this.transitioning) return;
+        this.transitioning = true;
+        this.cameras.main.fade(400, 0, 0, 0, false, (_cam, progress) => {
+            if (progress >= 1) {
+                this.scene.start('StageComplete', {
+                    investigationId: this.investigationId,
+                    stageIndex: this.stageIndex,
+                    clueText: this.stageData.clueText,
+                });
+            }
         });
     }
 

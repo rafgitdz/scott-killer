@@ -69,6 +69,10 @@ export class Player {
         this.hp = Math.max(0, this.hp - amount);
         this.invincible = true;
 
+        // Camera shake + red flash on damage
+        this.scene.cameras.main.shake(100, 0.005);
+        this.scene.cameras.main.flash(150, 200, 0, 0);
+
         this.scene.tweens.add({
             targets: this.sprite,
             alpha: 0.3,
@@ -95,7 +99,11 @@ export class Player {
             scaleX: 0.5,
             scaleY: 0.5,
             duration: 500,
-            onComplete: () => this.scene.onPlayerDeath()
+            onComplete: () => {
+                if (this.scene?.scene?.isActive()) {
+                    this.scene.onPlayerDeath();
+                }
+            }
         });
     }
 

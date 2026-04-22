@@ -7,12 +7,13 @@ export class GameOver extends Scene {
     }
 
     init(data) {
-        this.investigationId = data.investigationId;
-        this.stageIndex = data.stageIndex;
+        this.investigationId = data?.investigationId ?? 0;
+        this.stageIndex = data?.stageIndex ?? 0;
     }
 
     create() {
         this.cameras.main.setBackgroundColor(0x0a0000);
+        this.cameras.main.fadeIn(300, 0, 0, 0);
 
         this.add.text(512, 250, 'TU ES MORT', {
             fontFamily: 'Arial Black', fontSize: 64,
